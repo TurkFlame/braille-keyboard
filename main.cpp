@@ -1,16 +1,13 @@
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
 
-// Configuração do DFPlayer
 #define VOLUME 30
 #define DEBOUNCE_DELAY 50
 
-// Pinos RX/TX (evitando conflitos com botões)
-SoftwareSerial mySerial(50, 51); // RX, TX (usando pinos não ocupados)
+SoftwareSerial mySerial(50, 51);
 DFRobotDFPlayerMini player;
 
-// Mapeamento de botões (Pino, Pasta, Track)
-const int numButtons = 36; // 26 letras + 10 números
+const int numButtons = 36;
 struct ButtonConfig {
   int pin;
   int folder;
@@ -63,14 +60,12 @@ void setup() {
   Serial.begin(9600);
   mySerial.begin(9600);
 
-  // Inicializa DFPlayer
   if (!player.begin(mySerial)) {
     Serial.println("Falha ao iniciar DFPlayer!");
     while(true);
   }
   player.volume(VOLUME);
 
-  // Configura todos os botões como INPUT_PULLUP (logica LOW ativo)
   for (int i = 0; i < numButtons; i++) {
     pinMode(buttons[i].pin, INPUT_PULLUP);
   }
@@ -86,7 +81,7 @@ void loop() {
       Serial.print(", Track ");
       Serial.println(buttons[i].track);
       
-      while (digitalRead(buttons[i].pin) == LOW); // Espera soltar o botão
+      while (digitalRead(buttons[i].pin) == LOW);
     }
   }
 }
