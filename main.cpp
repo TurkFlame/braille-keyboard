@@ -1,263 +1,92 @@
-Código:
+#include "SoftwareSerial.h"
+#include "DFRobotDFPlayerMini.h"
 
-int Button_A = 13;
-int Button_B = 12;
-int Button_C = 11;
-int Button_D = 10;
-int Button_E = 9;
-int Button_F = 8;
-int buzzer = 7;
-int Button_G = 6;
-int Button_H = 5;
-int Button_I = 4;
-int Button_J = 3;  // Corrigido de Button_j para Button_J
-int Button_K = 2;
-int Button_L = 52;
-int Button_M = 50;
-int Button_N = 48;
-int Button_O = 46;
-int Button_P = 44;
-int Button_Q = 42;
-int Button_R = 40;
-int Button_S = 38;
-int Button_T = 36;
-int Button_U = 34;
-int Button_V = 32;
-int Button_W = 30;
-int Button_X = 28;
-int Button_Y = 26;
-int Button_Z = 24;
-int Button_01 = 22;
-int Button_02 = 53;
-int Button_03 = 51;
-int Button_04 = 49;
-int Button_05 = 47;
-int Button_06 = 45;
-int Button_07 = 43;
-int Button_08 = 41;
-int Button_09 = 39;
-int Button_10 = 37;
+// Configuração do DFPlayer
+#define VOLUME 30
+#define DEBOUNCE_DELAY 50
+
+// Pinos RX/TX (evitando conflitos com botões)
+SoftwareSerial mySerial(50, 51); // RX, TX (usando pinos não ocupados)
+DFRobotDFPlayerMini player;
+
+// Mapeamento de botões (Pino, Pasta, Track)
+const int numButtons = 36; // 26 letras + 10 números
+struct ButtonConfig {
+  int pin;
+  int folder;
+  int track;
+};
+
+ButtonConfig buttons[] = {
+  // Letras (Pasta 1: A=1, B=2, ..., Z=26)
+  {13, 1, 1},    // A
+  {12, 1, 2},    // B
+  {11, 1, 3},    // C
+  {10, 1, 4},    // D
+  {9, 1, 5},     // E
+  {8, 1, 6},     // F
+  {7, 1, 7},     // G
+  {6, 1, 8},     // H
+  {5, 1, 9},     // I
+  {4, 1, 10},    // J
+  {3, 1, 11},    // K
+  {52, 1, 12},   // L
+  {50, 1, 13},   // M
+  {48, 1, 14},   // N
+  {46, 1, 15},   // O
+  {44, 1, 16},   // P
+  {42, 1, 17},   // Q
+  {40, 1, 18},   // R
+  {38, 1, 19},   // S
+  {36, 1, 20},   // T
+  {34, 1, 21},   // U
+  {32, 1, 22},   // V
+  {30, 1, 23},   // W
+  {28, 1, 24},   // X
+  {26, 1, 25},   // Y
+  {24, 1, 26},   // Z
+
+  // Números (Pasta 2: 1=1, 2=2, ..., 10=10)
+  {22, 2, 1},    // 1
+  {53, 2, 2},    // 2
+  {51, 2, 3},    // 3
+  {49, 2, 4},    // 4
+  {47, 2, 5},    // 5
+  {45, 2, 6},    // 6
+  {43, 2, 7},    // 7
+  {41, 2, 8},    // 8
+  {39, 2, 9},    // 9
+  {37, 2, 10}    // 10
+};
 
 void setup() {
-  pinMode(Button_A, INPUT_PULLDOWN);
-  pinMode(Button_B, INPUT_PULLDOWN);
-  pinMode(Button_C, INPUT_PULLDOWN);
-  pinMode(Button_D, INPUT_PULLDOWN);
-  pinMode(Button_E, INPUT_PULLDOWN);
-  pinMode(Button_F, INPUT_PULLDOWN);
-  pinMode(Button_G, INPUT_PULLDOWN);
-  pinMode(Button_H, INPUT_PULLDOWN);
-  pinMode(Button_I, INPUT_PULLDOWN);
-  pinMode(Button_J, INPUT_PULLDOWN);
-  pinMode(Button_K, INPUT_PULLDOWN);
-  pinMode(Button_L, INPUT_PULLDOWN);
-  pinMode(Button_M, INPUT_PULLDOWN);
-  pinMode(Button_N, INPUT_PULLDOWN);
-  pinMode(Button_O, INPUT_PULLDOWN);
-  pinMode(Button_P, INPUT_PULLDOWN);
-  pinMode(Button_Q, INPUT_PULLDOWN);
-  pinMode(Button_R, INPUT_PULLDOWN);
-  pinMode(Button_S, INPUT_PULLDOWN);
-  pinMode(Button_T, INPUT_PULLDOWN);
-  pinMode(Button_U, INPUT_PULLDOWN);
-  pinMode(Button_V, INPUT_PULLDOWN);
-  pinMode(Button_W, INPUT_PULLDOWN);
-  pinMode(Button_X, INPUT_PULLDOWN);
-  pinMode(Button_Y, INPUT_PULLDOWN);
-  pinMode(Button_Z, INPUT_PULLDOWN);
-  pinMode(Button_01, INPUT_PULLDOWN);
-  pinMode(Button_02, INPUT_PULLDOWN);
-  pinMode(Button_03, INPUT_PULLDOWN);
-  pinMode(Button_04, INPUT_PULLDOWN);
-  pinMode(Button_05, INPUT_PULLDOWN);
-  pinMode(Button_06, INPUT_PULLDOWN);
-  pinMode(Button_07, INPUT_PULLDOWN);
-  pinMode(Button_08, INPUT_PULLDOWN);
-  pinMode(Button_09, INPUT_PULLDOWN);
-  pinMode(Button_10, INPUT_PULLDOWN);
+  Serial.begin(9600);
+  mySerial.begin(9600);
 
-  pinMode(buzzer, OUTPUT);  // Adicionado ponto e vírgula
+  // Inicializa DFPlayer
+  if (!player.begin(mySerial)) {
+    Serial.println("Falha ao iniciar DFPlayer!");
+    while(true);
+  }
+  player.volume(VOLUME);
+
+  // Configura todos os botões como INPUT_PULLUP (logica LOW ativo)
+  for (int i = 0; i < numButtons; i++) {
+    pinMode(buttons[i].pin, INPUT_PULLUP);
+  }
 }
 
 void loop() {
-  if(digitalRead(Button_A) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_B) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_C) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_D) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_E) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_F) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_G) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_H) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_I) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_J) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_K) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_L) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_M) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_N) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_O) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_P) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_Q) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_R) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_S) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_T) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_U) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_V) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_W) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_X) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_Y) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_Z) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_01) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_02) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_03) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_04) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_05) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_06) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_07) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_08) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_09) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
-  }
-  if(digitalRead(Button_10) == LOW){
-    tone(buzzer, 2000);
-    delay(500);
-    noTone(buzzer);
+  for (int i = 0; i < numButtons; i++) {
+    if (digitalRead(buttons[i].pin) == LOW) {
+      delay(DEBOUNCE_DELAY);
+      player.playFolder(buttons[i].folder, buttons[i].track);
+      Serial.print("Tocando: Pasta ");
+      Serial.print(buttons[i].folder);
+      Serial.print(", Track ");
+      Serial.println(buttons[i].track);
+      
+      while (digitalRead(buttons[i].pin) == LOW); // Espera soltar o botão
+    }
   }
 }
